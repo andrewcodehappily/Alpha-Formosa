@@ -4,7 +4,7 @@
 
 ## 功能
 
-- **技術指標全自動計算** — RSI, MACD, 布林通道, ATR, KD, ADX, CCI, OBV, Williams %R 等 13 種指標
+- **技術指標全自動計算** — 19 種指標：RSI, MACD, 布林通道, ATR, KD, ADX, CCI, OBV, Williams %R, DEMA, TEMA, HMA, Supertrend, Donchian, Keltner 等
 - **隨機森林波段預測** — 每檔股票獨立訓練，預測 5 日後漲跌方向
 - **跨股票 XGBoost 模型** — 200 檔台股聯合訓練，泛化能力強於單股模型
 - **信心度倉位管理** — 以模型預測機率決定進場倉位，不 all-in

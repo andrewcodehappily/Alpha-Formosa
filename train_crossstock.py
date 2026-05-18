@@ -67,7 +67,10 @@ def train_cross(tickers, model_path='models/rf_cross.joblib', max_depth=5):
 
         ml_df = pd.read_parquet(fpath)
         exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
-                   'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240']
+                   'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+                   'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+                   'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+                   'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
         features = [c for c in ml_df.columns if c not in exclude]
 
         if feat_list is None:
@@ -113,7 +116,10 @@ def train_cross_xgb(tickers, model_path='models/xgb_cross.joblib'):
 
         ml_df = pd.read_parquet(fpath)
         exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
-                   'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240']
+                   'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+                   'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+                   'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+                   'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
         features = [c for c in ml_df.columns if c not in exclude]
 
         if feat_list is None:
@@ -156,7 +162,10 @@ def test_one(ticker, model_path='models/rf_cross.joblib'):
 
     df = pd.read_parquet(DATA_DIR / f'{ticker}.parquet')
     exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
-               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240']
+               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+               'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+               'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+               'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
     feat_actual = [c for c in df.columns if c not in exclude]
 
     split = int(len(df) * 0.8)
@@ -183,7 +192,10 @@ def show_accuracy_summary(tickers, model_path='models/rf_cross.joblib'):
             continue
         df = pd.read_parquet(fpath)
         exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
-                   'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240']
+                   'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+                   'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+                   'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+                   'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
         feat_actual = [c for c in df.columns if c not in exclude]
         split = int(len(df) * 0.8)
         test_df = df.iloc[split:]

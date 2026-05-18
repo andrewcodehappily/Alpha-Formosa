@@ -169,6 +169,109 @@ def add_obv(df):
                           np.where(df['close'].diff() < 0, -df['volume'], 0))).cumsum()
     return df
 
+def add_dema_tema(df, period=20):
+    ema1 = df['close'].ewm(span=period, adjust=False).mean()
+    ema2 = ema1.ewm(span=period, adjust=False).mean()
+    ema3 = ema2.ewm(span=period, adjust=False).mean()
+    df['DEMA'] = 2 * ema1 - ema2
+    df['TEMA'] = 3 * ema1 - 3 * ema2 + ema3
+    return df
+
+def add_hma(df, period=16):
+    def _wma(series, n):
+        weights = np.arange(1, n + 1)
+        return series.rolling(n).apply(lambda x: np.dot(x, weights) / weights.sum(), raw=True)
+    half = period // 2
+    sqrt_n = int(np.sqrt(period))
+    w1 = _wma(df['close'], half)
+    w2 = _wma(df['close'], period)
+    raw_hma = 2 * w1 - w2
+    df['HMA'] = _wma(raw_hma, sqrt_n)
+    return df
+
+def add_supertrend(df, period=10, multiplier=3):
+    med_price = (df['high'] + df['low']) / 2
+    tr = pd.concat([
+        df['high'] - df['low'],
+        (df['high'] - df['close'].shift()).abs(),
+        (df['low'] - df['close'].shift()).abs()
+    ], axis=1).max(axis=1)
+    atr = tr.rolling(period).mean()
+    basic_upper = med_price + multiplier * atr
+    basic_lower = med_price - multiplier * atr
+    final_upper = basic_upper.values.copy()
+    final_lower = basic_lower.values.copy()
+    direction = np.ones(len(df))
+    supertrend = np.full(len(df), np.nan)
+    for i in range(1, len(df)):
+        if np.isnan(final_upper[i - 1]):
+            final_upper[i] = basic_upper.iloc[i]
+            final_lower[i] = basic_lower.iloc[i]
+            continue
+        final_upper[i] = basic_upper.iloc[i] if (basic_upper.iloc[i] < final_upper[i-1] or df['close'].iloc[i-1] > final_upper[i-1]) else final_upper[i-1]
+        final_lower[i] = basic_lower.iloc[i] if (basic_lower.iloc[i] > final_lower[i-1] or df['close'].iloc[i-1] < final_lower[i-1]) else final_lower[i-1]
+    for i in range(1, len(df)):
+        if np.isnan(final_lower[i - 1]):
+            direction[i] = 1
+        elif df['close'].iloc[i] > final_lower[i-1]:
+            direction[i] = 1
+        elif df['close'].iloc[i] < final_upper[i-1]:
+            direction[i] = -1
+        else:
+            direction[i] = direction[i-1]
+        supertrend[i] = final_lower[i] if direction[i] == 1 else final_upper[i]
+    df['Supertrend'] = supertrend
+    df['ST_Direction'] = direction
+    return df
+
+def add_donchian(df, period=20):
+    df['Donchian_Upper'] = df['high'].rolling(period).max()
+    df['Donchian_Lower'] = df['low'].rolling(period).min()
+    df['Donchian_Mid'] = (df['Donchian_Upper'] + df['Donchian_Lower']) / 2
+    return df
+
+def add_keltner(df, ema_period=20, atr_period=10, multiplier=2):
+    tr = pd.concat([
+        df['high'] - df['low'],
+        (df['high'] - df['close'].shift()).abs(),
+        (df['low'] - df['close'].shift()).abs()
+    ], axis=1).max(axis=1)
+    atr = tr.rolling(atr_period).mean()
+    df['Keltner_Mid'] = df['close'].ewm(span=ema_period, adjust=False).mean()
+    df['Keltner_Upper'] = df['Keltner_Mid'] + multiplier * atr
+    df['Keltner_Lower'] = df['Keltner_Mid'] - multiplier * atr
+    return df
+
+def add_zigzag(df, pct=5):
+    high = df['high'].values
+    low = df['low'].values
+    close = df['close'].values
+    n = len(df)
+    zz = np.zeros(n)
+    direction = 0
+    pivot_idx = 0
+    pivot_price = close[0]
+    for i in range(1, n):
+        if direction >= 0 and close[i] > pivot_price:
+            pivot_price = close[i]
+            pivot_idx = i
+        elif direction <= 0 and close[i] < pivot_price:
+            pivot_price = close[i]
+            pivot_idx = i
+        elif direction >= 0 and close[i] < pivot_price * (1 - pct / 100):
+            zz[pivot_idx] = pivot_price
+            pivot_price = close[i]
+            pivot_idx = i
+            direction = -1
+        elif direction <= 0 and close[i] > pivot_price * (1 + pct / 100):
+            zz[pivot_idx] = pivot_price
+            pivot_price = close[i]
+            pivot_idx = i
+            direction = 1
+    zz[pivot_idx] = pivot_price
+    df['ZigZag'] = np.where(zz > 0, zz, np.nan)
+    return df
+
 def add_all_indicators(df):
     df = add_ma(df)
     df = add_rsi(df)
@@ -183,6 +286,11 @@ def add_all_indicators(df):
     df = add_cci(df)
     df = add_chaikin(df)
     df = add_obv(df)
+    df = add_dema_tema(df)
+    df = add_hma(df)
+    df = add_supertrend(df)
+    df = add_donchian(df)
+    df = add_keltner(df)
     return df
 
 
@@ -217,6 +325,14 @@ def build_features(df, label_shifts=5):
     ml['MA20_above_MA120'] = ml['MA20'] > ml['MA120']
     ml['Momentum_14d'] = ml['close'] - ml['close'].shift(14)
 
+    ml['DEMA_Ratio'] = ml['close'] / ml['DEMA']
+    ml['TEMA_Ratio'] = ml['close'] / ml['TEMA']
+    ml['HMA_Slope'] = ml['HMA'] - ml['HMA'].shift(3)
+    ml['ST_Bullish'] = ml['ST_Direction'] == 1
+    ml['Donchian_Position'] = (ml['close'] - ml['Donchian_Lower']) / (ml['Donchian_Upper'] - ml['Donchian_Lower'])
+    ml['Donchian_Breakout'] = ml['close'] > ml['Donchian_Upper']
+    ml['Keltner_Position'] = (ml['close'] - ml['Keltner_Lower']) / (ml['Keltner_Upper'] - ml['Keltner_Lower'])
+
     ml['Target'] = (ml['close'].shift(-label_shifts) > ml['close']).astype(int)
     ml.dropna(inplace=True)
     return ml
@@ -231,7 +347,10 @@ def train_random_forest(ml_df, test_size=0.2, n_estimators=200):
     from sklearn.metrics import accuracy_score, classification_report
 
     exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
-               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240']
+               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+               'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+               'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+               'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
     features = [c for c in ml_df.columns if c not in exclude]
 
     X = ml_df[features]
@@ -264,7 +383,10 @@ def train_xgboost(ml_df, test_size=0.2):
     import xgboost as xgb
 
     exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
-               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240']
+               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+               'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+               'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+               'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
     features = [c for c in ml_df.columns if c not in exclude]
 
     X = ml_df[features]
