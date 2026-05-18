@@ -1,0 +1,49 @@
+# 資料快取
+data_cross/
+data_scan/
+*.parquet
+
+# 模型檔案
+models/
+*.joblib
+
+# 實驗/暫存目錄
+.gradio/
+LSTM/
+LSTM_RF/
+LSTM_v1.zip
+anaconda_projects/
+bda-midterm-project/
+
+# Notebook
+stock.ipynb
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.so
+.env
+.venv/
+venv/
+
+# macOS
+.DS_Store
+*._.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-*
+
+# Jupyter 暫存
+.ipynb_checkpoints/

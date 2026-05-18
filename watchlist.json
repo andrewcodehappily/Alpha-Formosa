@@ -1,0 +1,442 @@
+{
+  "name": "台股觀察清單",
+  "updated": "2026-05-18",
+  "stocks": [
+    {
+      "ticker": "2330.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "2454.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "2303.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "6770.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3034.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3661.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3443.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3037.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "2301.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "2408.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3711.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "6526.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "6239.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3532.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "4961.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "8016.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3189.TW",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3105.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3226.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "8299.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "8069.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "5347.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "6488.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "4971.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3260.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3081.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3558.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "6274.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "3529.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "6182.TWO",
+      "sector": "半導體"
+    },
+    {
+      "ticker": "2317.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2382.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2357.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3231.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2376.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2356.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2353.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2377.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2308.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3017.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "4938.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "6278.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2385.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3036.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "6669.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3701.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3044.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3057.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3515.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "3013.TW",
+      "sector": "電腦週邊"
+    },
+    {
+      "ticker": "2412.TW",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "3045.TW",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "4904.TW",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "3380.TW",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "3596.TW",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "2345.TW",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "5388.TWO",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "3163.TWO",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "6271.TWO",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "4908.TWO",
+      "sector": "通信網路"
+    },
+    {
+      "ticker": "2327.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2492.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2313.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2324.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2360.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2457.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2495.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2449.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "6213.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "3033.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "6147.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "3583.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "6201.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "8046.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "8261.TW",
+      "sector": "電子零組件"
+    },
+    {
+      "ticker": "2409.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "2474.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "3008.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "3406.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "6415.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "2456.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "6116.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "3481.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "4960.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "3545.TW",
+      "sector": "光電"
+    },
+    {
+      "ticker": "6288.TWO",
+      "sector": "光電"
+    },
+    {
+      "ticker": "8066.TWO",
+      "sector": "光電"
+    },
+    {
+      "ticker": "5234.TWO",
+      "sector": "光電"
+    },
+    {
+      "ticker": "6209.TWO",
+      "sector": "光電"
+    },
+    {
+      "ticker": "2354.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "2395.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "3030.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "3042.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "6142.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "6192.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "6197.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "6414.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "8044.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "8072.TW",
+      "sector": "其他電子"
+    },
+    {
+      "ticker": "2603.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2609.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2615.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2618.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2633.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2606.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2607.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2610.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "5608.TW",
+      "sector": "航運"
+    },
+    {
+      "ticker": "2642.TW",
+      "sector": "航運"
+    }
+  ]
+}
