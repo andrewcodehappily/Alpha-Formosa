@@ -411,6 +411,42 @@ def train_xgboost(ml_df, test_size=0.2):
     return model, features, X_train, X_test, y_train, y_test
 
 
+# ── LightGBM 模型 ─────────────────────────────────────────────
+
+def train_lightgbm(ml_df, test_size=0.2):
+    """訓練 LightGBM 模型"""
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score
+    import lightgbm as lgb
+
+    exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
+               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+               'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+               'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+               'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
+    features = [c for c in ml_df.columns if c not in exclude]
+
+    X, y = ml_df[features], ml_df['Target']
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, shuffle=False
+    )
+
+    model = lgb.LGBMClassifier(
+        n_estimators=100, num_leaves=16, max_depth=4, learning_rate=0.03,
+        subsample=0.8, colsample_bytree=0.8, min_child_samples=10,
+        reg_alpha=0.5, reg_lambda=1.5,
+        random_state=42, verbose=-1
+    )
+    model.fit(X_train, y_train)
+
+    train_acc = accuracy_score(y_train, model.predict(X_train))
+    test_acc = accuracy_score(y_test, model.predict(X_test))
+    print(f'  LGB 訓練準確率: {train_acc:.2%}')
+    print(f'  LGB 測試準確率: {test_acc:.2%}')
+
+    return model, features, X_train, X_test, y_train, y_test
+
+
 # ── LSTM 模型 ─────────────────────────────────────────────
 
 def train_lstm(df, seq_len=20, epochs=30, lr=0.001):
@@ -555,7 +591,7 @@ def backtest(backtest_df, initial_capital=1_000_000):
 
 # ── 一鍵分析 ─────────────────────────────────────────────
 
-def run_analysis(ticker='2330.TW', period='3y', with_xgb=True, with_lstm=False, trend_filter=True):
+def run_analysis(ticker='2330.TW', period='3y', with_xgb=True, with_lstm=False, with_lgb=False, trend_filter=True):
     """完整分析流程：資料 → 指標 → 模型 → 回測"""
     import platform
     print(f'╔{"═" * 45}╗')
@@ -598,6 +634,11 @@ def run_analysis(ticker='2330.TW', period='3y', with_xgb=True, with_lstm=False, 
     if with_xgb:
         print(f'  ── XGBoost ──')
         xgb_model, xgb_features, _, _, _, _ = train_xgboost(ml_df)
+
+    # LightGBM
+    if with_lgb:
+        print(f'  ── LightGBM ──')
+        lgb_model, lgb_features, _, _, _, _ = train_lightgbm(ml_df)
 
     # LSTM
     if with_lstm:
@@ -679,6 +720,7 @@ if __name__ == '__main__':
     parser.add_argument('ticker', nargs='?', default='2330.TW', help='股票代號 (預設 2330.TW)')
     parser.add_argument('--period', default='3y', help='資料區間 (預設 3y)')
     parser.add_argument('--no-xgb', action='store_true', help='跳過 XGBoost')
+    parser.add_argument('--lgb', action='store_true', help='加入 LightGBM')
     parser.add_argument('--lstm', action='store_true', help='加入 LSTM')
     parser.add_argument('--no-trend', action='store_true', help='關閉趨勢濾網')
     args = parser.parse_args()
@@ -687,6 +729,7 @@ if __name__ == '__main__':
         ticker=args.ticker,
         period=args.period,
         with_xgb=not args.no_xgb,
+        with_lgb=args.lgb,
         with_lstm=args.lstm,
         trend_filter=not args.no_trend,
     )

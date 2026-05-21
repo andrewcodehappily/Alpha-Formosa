@@ -16,6 +16,7 @@ from test import fetch_data, add_all_indicators, build_features, train_random_fo
 
 WATCHLIST = 'watchlist.json'
 CROSS_MODEL = 'models/xgb_cross.joblib'
+LGB_MODEL = 'models/lgb_cross.joblib'
 DATA_DIR = Path('data_scan')
 DATA_DIR.mkdir(exist_ok=True)
 
@@ -26,9 +27,10 @@ def load_watchlist():
     return data['stocks']
 
 
-def load_cross_model():
-    print(f'  📦 載入跨股票模型：{CROSS_MODEL}')
-    saved = load(CROSS_MODEL)
+def load_cross_model(use_lgb=False):
+    path = LGB_MODEL if use_lgb else CROSS_MODEL
+    print(f'  📦 載入跨股票模型：{path}')
+    saved = load(path)
     return saved['model'], saved['features']
 
 
@@ -163,6 +165,8 @@ if __name__ == '__main__':
     parser.add_argument('--quick', action='store_true', help='只跑 10 檔測試')
     parser.add_argument('--cross-only', action='store_true', help='只用跨股票模型')
     parser.add_argument('--single-only', action='store_true', help='只用單股 RF')
+    parser.add_argument('--lgb', action='store_true', help='使用 LightGBM 取代 XGBoost')
+    parser.add_argument('--lgb-only', action='store_true', help='只用 LightGBM 跨股票模型')
     args = parser.parse_args()
 
     stocks = load_watchlist()
@@ -175,14 +179,16 @@ if __name__ == '__main__':
     single_results = []
     cross_results = []
 
-    cross_model, cross_features = load_cross_model()
+    cross_model, cross_features = load_cross_model(use_lgb=args.lgb or args.lgb_only)
+    model_label = 'LGB' if (args.lgb or args.lgb_only) else 'XGB'
+    cross_only = args.cross_only or args.lgb_only
 
     for i, s in enumerate(stocks, 1):
         ticker = s['ticker']
         print(f'  [{i:>3}/{len(stocks)}] {ticker} ... ', end='', flush=True)
 
         try:
-            if not args.cross_only:
+            if not cross_only:
                 sr = run_single_stock(ticker)
                 if sr:
                     single_results.append(sr)
@@ -194,10 +200,10 @@ if __name__ == '__main__':
                 cr = run_cross_stock(ticker, cross_model, cross_features)
                 if cr:
                     cross_results.append(cr)
-                    action = '  ' if not args.cross_only else ''
-                    print(f'{action}XGB: {cr["return"]:+.2%}', end='', flush=True)
+                    action = '  ' if not cross_only else ''
+                    print(f'{action}{model_label}: {cr["return"]:+.2%}', end='', flush=True)
                 else:
-                    print(f' XGB: ❌', end='', flush=True)
+                    print(f' {model_label}: ❌', end='', flush=True)
 
         except Exception as e:
             print(f'⚠️  錯誤: {e}', end='', flush=True)
@@ -213,16 +219,17 @@ if __name__ == '__main__':
         single_avg = print_ranking(single_results, '單股 RF')
 
     if cross_results:
-        print(f'\n🔥 跨股票 XGBoost 排名 (共 {len(cross_results)} 檔)：')
-        cross_avg = print_ranking(cross_results, '跨股票 XGB')
+        cross_label_full = f'跨股票 {model_label}'
+        print(f'\n🔥 {cross_label_full} 排名 (共 {len(cross_results)} 檔)：')
+        cross_avg = print_ranking(cross_results, cross_label_full)
 
     if single_results and cross_results:
         print(f'\n{"=" * 50}')
         print(f'🏆 終極對決')
         print(f'{"=" * 50}')
         print(f'  單股 RF 平均：{single_avg:.2%}')
-        print(f'  跨股票 XGB 平均：{cross_avg:.2%}')
-        winner = '單股 RF' if single_avg > cross_avg else '跨股票 XGBoost'
+        print(f'  {cross_label_full} 平均：{cross_avg:.2%}')
+        winner = '單股 RF' if single_avg > cross_avg else cross_label_full
         print(f'  贏家：{winner}')
 
         # 同場比較
@@ -230,4 +237,4 @@ if __name__ == '__main__':
         cross_map = {r['ticker']: r for r in cross_results}
         common = set(single_map) & set(cross_map)
         wins_single = sum(1 for t in common if single_map[t]['return'] > cross_map[t]['return'])
-        print(f'  同場對決 {len(common)} 檔：RF 贏 {wins_single} 檔, XGB 贏 {len(common)-wins_single} 檔')
+        print(f'  同場對決 {len(common)} 檔：RF 贏 {wins_single} 檔, {model_label} 贏 {len(common)-wins_single} 檔')

@@ -414,6 +414,39 @@ def train_xgboost(ml_df, test_size=0.2):
     return model, features, X_train, X_test, y_train, y_test
 
 
+def train_lightgbm(ml_df, test_size=0.2):
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score
+    import lightgbm as lgb
+
+    exclude = ['Target', 'open', 'high', 'low', 'close', 'volume',
+               'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
+               'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
+               'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
+               'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
+    features = [c for c in ml_df.columns if c not in exclude]
+
+    X, y = ml_df[features], ml_df['Target']
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, shuffle=False
+    )
+
+    model = lgb.LGBMClassifier(
+        n_estimators=100, num_leaves=16, max_depth=4, learning_rate=0.03,
+        subsample=0.8, colsample_bytree=0.8, min_child_samples=10,
+        reg_alpha=0.5, reg_lambda=1.5,
+        random_state=42, verbose=-1
+    )
+    model.fit(X_train, y_train)
+
+    train_acc = accuracy_score(y_train, model.predict(X_train))
+    test_acc = accuracy_score(y_test, model.predict(X_test))
+    print(f'  LGB 訓練準確率: {train_acc:.2%}')
+    print(f'  LGB 測試準確率: {test_acc:.2%} (波段盲測)')
+
+    return model, features, X_train, X_test, y_train, y_test
+
+
 def train_lstm(df, seq_len=20, epochs=30, lr=0.001):
     import torch
     import torch.nn as nn
@@ -577,7 +610,7 @@ def backtest(backtest_df, initial_capital=1_000_000):
 # ── 主流程 ─────────────────────────────────────────────
 
 def run_analysis(ticker='2330.TW', period='3y', with_xgb=True, with_lstm=False,
-                 trend_filter=True, cross_model_path=None, ensemble=False):
+                 with_lgb=False, trend_filter=True, cross_model_path=None, ensemble=False):
     if ensemble and cross_model_path is None:
         # 優先使用 XGBoost 跨股票模型（訓練準確率 73.8% vs RF 57.2%）
         xgb_path = 'models/xgb_cross.joblib'
@@ -678,6 +711,10 @@ def run_analysis(ticker='2330.TW', period='3y', with_xgb=True, with_lstm=False,
             print('  ── XGBoost ──')
             xgb_model, xgb_features, *_ = train_xgboost(ml_df)
 
+        if with_lgb:
+            print('  ── LightGBM ──')
+            lgb_model, lgb_features, *_ = train_lightgbm(ml_df)
+
         if with_lstm:
             print('  ── LSTM ──')
             lstm_model, scaler = train_lstm(df)
@@ -769,6 +806,7 @@ if __name__ == '__main__':
     parser.add_argument('ticker', nargs='?', default='2330.TW', help='股票代號 (預設 2330.TW)')
     parser.add_argument('--period', default='3y', help='資料區間 (預設 3y)')
     parser.add_argument('--no-xgb', action='store_true', help='跳過 XGBoost')
+    parser.add_argument('--lgb', action='store_true', help='加入 LightGBM')
     parser.add_argument('--lstm', action='store_true', help='加入 LSTM')
     parser.add_argument('--no-trend', action='store_true', help='關閉趨勢濾網')
     parser.add_argument('--cross-model', default=None, help='使用跨股票模型路徑 (預設: models/rf_cross.joblib)',
@@ -780,6 +818,7 @@ if __name__ == '__main__':
         ticker=args.ticker,
         period=args.period,
         with_xgb=not args.no_xgb,
+        with_lgb=args.lgb,
         with_lstm=args.lstm,
         trend_filter=not args.no_trend,
         cross_model_path=args.cross_model,

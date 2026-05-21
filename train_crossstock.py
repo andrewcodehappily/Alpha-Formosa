@@ -24,6 +24,7 @@ MODEL_DIR = Path('models')
 MODEL_DIR.mkdir(exist_ok=True)
 
 XGB_MODEL_PATH = 'models/xgb_cross.joblib'
+LGB_MODEL_PATH = 'models/lgb_cross.joblib'
 
 
 def download_all(tickers, max_workers=8):
@@ -232,6 +233,93 @@ def train_cross_xgb(tickers, model_path='models/xgb_cross.joblib', params=None, 
     return model, features
 
 
+def tune_lgb(tickers):
+    """Grid Search + TimeSeriesSplit 找最佳 LightGBM 參數"""
+    import lightgbm as lgb
+    print('\n🔧 LightGBM 參數搜尋（取 30 檔代表，TimeSeriesSplit 3 折）...')
+    subset = tickers[:30] if len(tickers) > 30 else tickers
+    X, y, features = load_data(subset)
+    print(f'  搜尋資料：{len(X):,} 筆, {X.shape[1]} 特徵')
+
+    tscv = TimeSeriesSplit(n_splits=3)
+
+    param_grid = {
+        'num_leaves': [15, 31],
+        'max_depth': [4, 6],
+        'learning_rate': [0.03, 0.05, 0.1],
+        'subsample': [0.7, 0.8],
+        'colsample_bytree': [0.7, 0.8],
+        'min_child_samples': [10, 20],
+    }
+
+    model = lgb.LGBMClassifier(
+        n_estimators=500, random_state=42, verbose=-1
+    )
+
+    search = GridSearchCV(
+        model, param_grid, cv=tscv,
+        scoring='accuracy', n_jobs=-1,
+        verbose=1
+    )
+    search.fit(X, y)
+
+    print(f'\n  🏆 最佳 LightGBM 參數：{search.best_params_}')
+    print(f'  最佳 3 折平均準確率：{search.best_score_:.2%}')
+
+    best = search.best_params_.copy()
+    best.setdefault('n_estimators', 500)
+    best.setdefault('random_state', 42)
+    best.setdefault('verbose', -1)
+
+    print(f'  完整參數：{best}')
+    return best
+
+
+def train_cross_lgb(tickers, model_path='models/lgb_cross.joblib', params=None, prune=False):
+    """訓練跨股票 LightGBM 模型"""
+    import lightgbm as lgb
+    X, y, features = load_data(tickers)
+
+    print(f'\n  📊 訓練資料：{len(X):,} 筆, {X.shape[1]} 特徵')
+    print(f'  正標籤比率：{y.mean():.1%}')
+
+    if params is None:
+        params = {
+            'n_estimators': 500, 'num_leaves': 31, 'max_depth': 6,
+            'learning_rate': 0.05, 'subsample': 0.8, 'colsample_bytree': 0.8,
+            'min_child_samples': 10,
+            'random_state': 42, 'verbose': -1,
+        }
+
+    print(f'   參數: {params}')
+    model = lgb.LGBMClassifier(**params)
+    model.fit(X, y)
+
+    train_acc = accuracy_score(y, model.predict(X))
+    print(f'  訓練準確率：{train_acc:.2%}')
+
+    # 特徵重要性
+    imp = pd.Series(model.feature_importances_, index=features).sort_values(ascending=False)
+    print(f'\n  🌟 特徵重要性 Top 10：')
+    for feat, val in imp.head(10).items():
+        print(f'    {feat:<20s} {val:.3%}')
+
+    if prune:
+        keep = prune_features(model, features, threshold=0.01)
+        print(f'\n  🔄 剪枝後重新訓練...')
+        X_pruned = pd.DataFrame(X, columns=features)[keep].values
+        model2 = lgb.LGBMClassifier(**params)
+        model2.fit(X_pruned, y)
+        acc2 = accuracy_score(y, model2.predict(X_pruned))
+        print(f'  剪枝後訓練準確率：{acc2:.2%}')
+        model = model2
+        features = keep
+
+    dump({'model': model, 'features': features}, model_path)
+    print(f'  ✅ 模型已儲存：{model_path}')
+    return model, features
+
+
 def test_one(ticker, model_path='models/rf_cross.joblib'):
     """對單一股票進行樣本外測試"""
     from joblib import load
@@ -305,6 +393,7 @@ if __name__ == '__main__':
     parser.add_argument('--summary', action='store_true', help='顯示全部測試準確率')
     parser.add_argument('--depth', type=int, default=5, help='RF 樹深度 (預設 5)')
     parser.add_argument('--xgb', action='store_true', help='使用 XGBoost 訓練')
+    parser.add_argument('--lgb', action='store_true', help='使用 LightGBM 訓練')
     parser.add_argument('--tune', action='store_true', help='Grid Search 找最佳參數')
     parser.add_argument('--prune', action='store_true', help='剪枝低貢獻特徵後重新訓練')
     args = parser.parse_args()
@@ -324,8 +413,19 @@ if __name__ == '__main__':
         ok = sorted([f.stem for f in DATA_DIR.glob('*.parquet') if not f.stem.endswith('_raw')])
         print(f'📂 從快取載入 {len(ok)} 檔股票資料')
 
+    # LightGBM
+    if args.lgb:
+        best_params = None
+        if args.tune:
+            best_params = tune_lgb(ok)
+            print(f'\n🧠 使用最佳 LightGBM 參數重新訓練...')
+        else:
+            print(f'\n🧠 訓練跨股票 LightGBM 模型...')
+
+        train_cross_lgb(ok, LGB_MODEL_PATH, params=best_params, prune=args.prune)
+
     # XGBoost
-    if args.xgb:
+    elif args.xgb:
         best_params = None
         if args.tune:
             best_params = tune_xgb(ok)
