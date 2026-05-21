@@ -228,23 +228,31 @@ def analyze(ticker, start_date, end_date, predict_days):
 with gr.Blocks(title='台股 AI 量化分析系統', theme=gr.themes.Soft()) as demo:
     gr.Markdown("""
     # 📊 台股 AI 量化分析系統
-    輸入股票代號與日期範圍，一鍵獲得技術分析、AI 預測與未來走勢
+    輸入股票代號，一鍵獲得技術分析、AI 預測與未來走勢
     """)
 
     with gr.Row():
         with gr.Column(scale=4, min_width=640):
             ticker_input = gr.Textbox(label='股票代號', value='2330.TW', placeholder='2330.TW 或 AAPL')
             with gr.Row():
-                start_input = gr.Textbox(label='開始日期', value=(datetime.today() - timedelta(days=365)).strftime('%Y-%m-%d'))
-                end_input = gr.Textbox(label='結束日期', value=datetime.today().strftime('%Y-%m-%d'))
-            predict_days = gr.Dropdown(label='預測天數', choices=[3, 5, 7, 10, 14, 21], value=5)
+                start_input = gr.Textbox(
+                    label='開始日期（餵給 AI 的歷史資料起點）',
+                    value=(datetime.today() - timedelta(days=365)).strftime('%Y-%m-%d'),
+                    info='預設往前一年，AI 用這段資料學習股價模式。通常不用改，想測試特定區間再調整。'
+                )
+                end_input = gr.Textbox(
+                    label='結束日期（餵給 AI 的歷史資料終點）',
+                    value=datetime.today().strftime('%Y-%m-%d'),
+                    info='建議維持當天日期，AI 從這段歷史學習後預測未來。'
+                )
+            predict_days = gr.Dropdown(label='預測未來幾天', choices=[3, 5, 7, 10, 14, 21], value=5)
 
     with gr.Row():
         run_btn = gr.Button('🚀 執行分析', variant='primary', size='lg')
 
     with gr.Row():
         with gr.Column(scale=1, min_width=160):
-            summary_output = gr.Textbox(label='📝 預測摘要（含每日漲跌平）', lines=12)
+            summary_output = gr.Textbox(label='📝 預測結果', lines=14)
 
     with gr.Row():
         with gr.Tabs():
@@ -266,7 +274,8 @@ with gr.Blocks(title='台股 AI 量化分析系統', theme=gr.themes.Soft()) as 
     ### 💡 使用說明
     - **台股**：輸入數字代號（如 `2330`）或完整代號（如 `2330.TW`）
     - **美股**：直接輸入代號（如 `AAPL`, `TSLA`）
-    - **預測方法**：RandomForest 回歸模型 + 趨勢推估
+    - **日期欄位**：預設不用改。那是餵給 AI 學習的「歷史資料範圍」，不是預測的日期範圍。AI 會從這段資料學習模式，然後往外預測。
+    - **⚠️ 免責**：這是 RandomForest 回歸模型，預測準確率約 40-60%。用來參考趨勢方向，**不是投資建議**。回頭測系統的績效遠比這邊的數字好看，因為分類模型比回歸模型穩定很多。
     - **技術指標**：KD、RSI、MACD、布林通道、ADX、CCI、OBV、威廉指標、Chaikin 資金流
     """)
 
