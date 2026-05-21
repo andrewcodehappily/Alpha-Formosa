@@ -3,6 +3,16 @@
 技術分析 + RandomForest 價格預測 + 未來趨勢推估
 """
 import warnings; warnings.filterwarnings('ignore')
+import logging
+import traceback
+from datetime import datetime
+
+# 錯誤日誌
+log_file = f'stock_ui_{datetime.today().strftime("%Y%m%d")}.log'
+logging.basicConfig(
+    filename=log_file, level=logging.ERROR,
+    format='%(asctime)s [%(levelname)s] %(message)s'
+)
 
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -28,17 +38,18 @@ def fetch_range(ticker, start_date, end_date):
 
 def prepare_features(df):
     """準備特徵：用技術指標預測收盤價"""
-    df = add_all_indicators(df)
-    df = df.dropna()
-    if len(df) < 30:
-        return None, None, None, None
-
     exclude = ['open', 'high', 'low', 'close', 'volume',
                'Upper_Band', 'Lower_Band', 'MA20', 'MA60', 'MA120', 'MA240',
                'DEMA', 'TEMA', 'HMA', 'Supertrend', 'ST_Direction',
                'Donchian_Upper', 'Donchian_Lower', 'Donchian_Mid',
                'Keltner_Mid', 'Keltner_Upper', 'Keltner_Lower']
     features = [c for c in df.columns if c not in exclude]
+    # 只針對特徵欄位 dropna，保留原始價格資料
+    df = df.dropna(subset=features)
+    if len(df) < 30:
+        return None, None
+    if len(features) < 3:
+        return None, None
     return df, features
 
 
@@ -207,7 +218,9 @@ def analyze(ticker, start_date, end_date, predict_days):
         return tech_chart, pred_chart, future_chart, summary
 
     except Exception as e:
-        return None, None, None, f'❌ 錯誤：{e}'
+        logging.error(f'{ticker} | {e}\n{traceback.format_exc()}')
+        err_type = type(e).__name__
+        return None, None, None, f'❌ [{err_type}] {e}\n（詳細錯誤已記錄至 {log_file}）'
 
 
 # ── Gradio 介面 ──
